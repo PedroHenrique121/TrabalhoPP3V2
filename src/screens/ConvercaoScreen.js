@@ -1,6 +1,7 @@
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+
 import {
   ActivityIndicator,
   Image,
@@ -10,6 +11,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+
+
 
 export default function InitialScreen({ navigation }) {
 
@@ -24,7 +27,9 @@ export default function InitialScreen({ navigation }) {
   }, []);
 
   async function load() {
+
     try {
+
       setLoading(true);
 
       const res = await axios.get(
@@ -39,13 +44,18 @@ export default function InitialScreen({ navigation }) {
       setFiltered(data);
 
     } catch (error) {
+
       console.log('Erro API:', error);
+
     } finally {
+
       setLoading(false);
+
     }
   }
 
   function searchCountry(text) {
+
     setSearch(text);
 
     const result = countries.filter(item =>
@@ -62,54 +72,68 @@ export default function InitialScreen({ navigation }) {
     );
 
     if (exists) {
+
       setFavorites(
         favorites.filter(
           item => item.name.common !== country.name.common
         )
       );
+
     } else {
+
       setFavorites([...favorites, country]);
+
     }
   }
 
   function openCountry(country) {
-  navigation.navigate('Details', {
-  country,
-  favorites,
-  setFavorites
-});
+
+    navigation.navigate('Details', {
+      country,
+      favorites,
+      setFavorites
+    });
+
   }
 
   function openFavorites() {
+
     navigation.navigate('Favoritos', {
-      favoritos: favorites
+      favorites,
+      setFavorites
     });
+
   }
 
   const isFav = (name) =>
     favorites.some(item => item.name.common === name);
 
   return (
+
     <View style={{ flex: 1, backgroundColor: '#F4F6FB' }}>
 
       {/* HEADER */}
-      <View style={{
-        backgroundColor: '#2F6FDB',
-        padding: 20,
-        paddingTop: 50,
-        borderBottomLeftRadius: 25,
-        borderBottomRightRadius: 25
-      }}>
+      <View
+        style={{
+          backgroundColor: '#2F6FDB',
+          padding: 20,
+          paddingTop: 50,
+          borderBottomLeftRadius: 25,
+          borderBottomRightRadius: 25
+        }}
+      >
 
-        <Text style={{
-          color: '#fff',
-          fontSize: 26,
-          fontWeight: 'bold'
-        }}>
+        <Text
+          style={{
+            color: '#fff',
+            fontSize: 26,
+            fontWeight: 'bold'
+          }}
+        >
           Países
         </Text>
 
-        {/* FAVORITOS BUTTON */}
+     
         <TouchableOpacity
           onPress={openFavorites}
           style={{
@@ -118,35 +142,69 @@ export default function InitialScreen({ navigation }) {
             top: 50
           }}
         >
-          <AntDesign name="heart" size={26} color="#fff" />
+
+          <AntDesign
+            name="heart"
+            size={26}
+            color="#fff"
+          />
+
         </TouchableOpacity>
 
-        {/* SEARCH */}
-        <View style={{
-          backgroundColor: '#fff',
-          marginTop: 15,
-          borderRadius: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingHorizontal: 10
-        }}>
-          <AntDesign name="search1" size={18} color="gray" />
+
+
+  <TouchableOpacity onPress={() => navigation.navigate('Perfil')}>
+    <AntDesign name="user" size={26} color="#fff" />
+  </TouchableOpacity>
+
+    
+        <View
+          style={{
+            backgroundColor: '#fff',
+            marginTop: 15,
+            borderRadius: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 10
+          }}
+        >
+
+          <AntDesign
+            name="search1"
+            size={18}
+            color="gray"
+          />
 
           <TextInput
             placeholder="Pesquisar país..."
             value={search}
             onChangeText={searchCountry}
-            style={{ flex: 1, marginLeft: 10, height: 45 }}
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              height: 45
+            }}
           />
+
         </View>
 
       </View>
 
-      {/* LIST */}
-      <ScrollView style={{ padding: 15 }}>
+      <ScrollView
+        contentContainerStyle={{
+          padding: 15,
+          paddingBottom: 100
+        }}
+      >
 
         {loading ? (
-          <ActivityIndicator size="large" color="#2F6FDB" style={{ marginTop: 30 }} />
+
+          <ActivityIndicator
+            size="large"
+            color="#2F6FDB"
+            style={{ marginTop: 30 }}
+          />
+
         ) : (
 
           filtered.map((item, index) => (
@@ -174,29 +232,47 @@ export default function InitialScreen({ navigation }) {
                 }}
               />
 
-              <View style={{
-                flex: 1,
-                marginLeft: 12
-              }}>
-                <Text style={{
-                  fontSize: 16,
-                  fontWeight: 'bold'
-                }}>
+              <View
+                style={{
+                  flex: 1,
+                  marginLeft: 12
+                }}
+              >
+
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 'bold'
+                  }}
+                >
                   {item.name.common}
                 </Text>
 
                 <Text style={{ color: 'gray' }}>
                   Capital: {item.capital?.[0] || 'N/A'}
                 </Text>
+
               </View>
 
               {/* FAVORITE BUTTON */}
-              <TouchableOpacity onPress={() => toggleFav(item)}>
+              <TouchableOpacity
+                onPress={() => toggleFav(item)}
+              >
+
                 <AntDesign
-                  name={isFav(item.name.common) ? 'heart' : 'hearto'}
+                  name={
+                    isFav(item.name.common)
+                      ? 'heart'
+                      : 'hearto'
+                  }
                   size={22}
-                  color={isFav(item.name.common) ? 'red' : 'gray'}
+                  color={
+                    isFav(item.name.common)
+                      ? 'red'
+                      : 'gray'
+                  }
                 />
+
               </TouchableOpacity>
 
             </TouchableOpacity>
@@ -206,6 +282,7 @@ export default function InitialScreen({ navigation }) {
 
       </ScrollView>
 
+    
     </View>
   );
 }

@@ -1,41 +1,73 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import {Text,View,Image,TextInput,TouchableOpacity,StyleSheet} from 'react-native';
-import { useState } from 'react';
-import {getAuth,updatePassword} from "firebase/auth";
+import {
+  Text,
+  View,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator
+} from 'react-native';
 
-function loginScreen({ navigation }) {
+import { getAuth, updatePassword, onAuthStateChanged } from 'firebase/auth';
 
-
-  const [novaSenha, setNovaSenha] = useState('');
-
+export default function AlterarSenhaScreen() {
 
   const auth = getAuth();
 
-  async function alterarSenha() {
+  const [novaSenha, setNovaSenha] = useState('');
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
+
+    return unsub;
+  }, []);
+
+  async function alterarSenha() {
     try {
 
-   
-      const user = auth.currentUser;
-
-      
-      if (!user) {
-        alert('Usuário não autenticado');
+      if (!auth.currentUser) {
+        Alert.alert('Erro', 'Usuário não autenticado');
         return;
       }
 
-    
-      await updatePassword(user, novaSenha);
+      if (!novaSenha || novaSenha.length < 6) {
+        Alert.alert('Erro', 'Senha deve ter no mínimo 6 caracteres');
+        return;
+      }
 
-      alert('Senha alterada com sucesso!');
+      await updatePassword(auth.currentUser, novaSenha);
+
+      Alert.alert('Sucesso', 'Senha alterada com sucesso!');
+      setNovaSenha('');
 
     } catch (error) {
-
       console.log(error);
 
-      alert(error.message);
+      if (error.code === 'auth/requires-recent-login') {
+        Alert.alert(
+          'Sessão expirada',
+          'Faça login novamente para alterar a senha.'
+        );
+      } else {
+        Alert.alert('Erro', error.message);
+      }
     }
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#2F6FDB" />
+      </View>
+    );
   }
 
   return (
@@ -43,27 +75,34 @@ function loginScreen({ navigation }) {
 
       <StatusBar style="auto" />
 
+      {/* FOTO */}
       <Image
         style={styles.image}
-        source={require('../../assets/images/contatos.png')}
+        source={{
+          uri: user?.photoURL || 'https://i.pravatar.cc/300'
+        }}
       />
 
-      <Text style={styles.title}>Daiane Santos</Text>
-
-      <Text style={styles.title2}>
-        dai@gmail.com
+      {/* NOME */}
+      <Text style={styles.title}>
+        {user?.displayName || 'Usuário'}
       </Text>
 
-      
+      {/* EMAIL */}
+      <Text style={styles.title2}>
+        {user?.email || ''}
+      </Text>
+
+      {/* INPUT SENHA */}
       <TextInput
         style={styles.input}
         placeholder="Digite a nova senha"
-        secureTextEntry={true}
+        secureTextEntry
         value={novaSenha}
         onChangeText={setNovaSenha}
       />
 
-      
+      {/* BOTÃO */}
       <TouchableOpacity
         style={styles.button}
         onPress={alterarSenha}
@@ -77,15 +116,31 @@ function loginScreen({ navigation }) {
   );
 }
 
-export default loginScreen;
+/* ===================== */
+/*         CSS           */
+/* ===================== */
 
 const styles = StyleSheet.create({
 
   container: {
-    backgroundColor: '#ffffff',
     flex: 1,
+    backgroundColor: '#fff',
     justifyContent: 'center',
     padding: 65
+  },
+
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  image: {
+    width: 100,
+    height: 100,
+    borderRadius: 100,
+    alignSelf: 'center',
+    marginBottom: 20
   },
 
   title: {
@@ -96,19 +151,11 @@ const styles = StyleSheet.create({
   },
 
   title2: {
-    fontSize: 20,
+    fontSize: 18,
     marginBottom: 40,
     textAlign: 'center',
     fontWeight: 'bold',
     color: '#091c5c'
-  },
-
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 100,
-    alignSelf: 'center',
-    marginBottom: 20
   },
 
   input: {
@@ -123,7 +170,6 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#2F6FDB',
     padding: 12,
-    marginBottom: 18,
     marginTop: 30,
     borderRadius: 8
   },
